@@ -31,3 +31,9 @@ app.include_router(terminal.router)
 @app.get("/")
 def home():
     return {"message": "Welcome to AgriPulse API!"}
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 10000)))
