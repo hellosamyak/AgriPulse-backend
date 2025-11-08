@@ -1,25 +1,40 @@
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import JSONResponse
 import requests
-from google import genai
 import os
-from dotenv import load_dotenv
 import datetime
 import json
 import statistics
+import random
+import pandas as pd
+from pathlib import Path
+from google import genai
+from dotenv import load_dotenv
 
 load_dotenv()
 
 router = APIRouter(prefix="/terminal", tags=["Agri Terminal"])
 
+# =============================
+# 🔑 API KEYS & CONFIG
+# =============================
 DATA_GOV_API_KEY = os.getenv("DATA_GOV_API_KEY")
 WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+DISTANCEMATRIX_API_KEY = os.getenv("DISTANCEMATRIX_API_KEY")
 
-# Initialize Gemini client
 client = genai.Client(api_key=GEMINI_API_KEY)
 
+DATA_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "data"
+    / "international_prices_synthetic_expanded_inr.csv"
+)
 
+
+# ============================================================
+# 🌾 MAIN TERMINAL ENDPOINT
+# ============================================================
 @router.get("/")
 def get_market_terminal(
     commodity: str = Query("wheat"),
@@ -27,37 +42,21 @@ def get_market_terminal(
     harvest_days: int = Query(53),
     location: str = Query("Indore"),
 ):
-    """
-    Returns a structured terminal response combining:
-     - Agmarknet (data.gov.in) mandi data for the commodity
-     - Weather (WeatherAPI) for `location`
-     - Gemini structured insight influenced by weather + harvest_days
-    """
-
     try:
-        # 1) fetch mandi records
+        # 1️⃣ Fetch Mandi data
         records = fetch_mandi_records(commodity=commodity, limit=limit)
-
-        # 2) normalized market_data
         market_data = normalize_mandi_records(records, commodity)
 
-        # 3) compute summary stats
-        modal_prices = [
-            m["modal_price"] for m in market_data if m.get("modal_price") is not None
-        ]
+        # 2️⃣ Compute summary
+        modal_prices = [m["modal_price"] for m in market_data if m.get("modal_price")]
         avg_price = round(statistics.mean(modal_prices), 2) if modal_prices else 0
-        highest_market = (
-            max(market_data, key=lambda x: x.get("modal_price", 0))
-            if market_data
-            else {}
-        )
-        lowest_market = (
-            min(market_data, key=lambda x: x.get("modal_price", float("inf")))
-            if market_data
-            else {}
+
+        highest_market = max(market_data, key=lambda x: x.get("modal_price", 0))
+        lowest_market = min(
+            market_data, key=lambda x: x.get("modal_price", float("inf"))
         )
 
-        summary_stats = {
+        summary = {
             "commodity": commodity.capitalize(),
             "average_price": avg_price,
             "highest_price": highest_market.get("modal_price", 0),
@@ -66,73 +65,68 @@ def get_market_terminal(
             "lowest_market": f"{lowest_market.get('market','')}, {lowest_market.get('state','')}",
         }
 
-        # 4) fetch weather data for provided location (affects yield outlook)
+        # 3️⃣ Fetch Weather
         weather = fetch_weather_for_location(location)
 
-        # 5) price forecast for next 7 days
+        # 4️⃣ Forecast Prices
         price_forecast = generate_price_forecast(market_data, days=7)
 
-        # 6) Gemini structured insight (including weather + harvest_days)
+        # 5️⃣ AI Insight
         ai_structured = generate_structured_ai_insight(
-            commodity=commodity,
-            market_data=market_data,
-            summary=summary_stats,
-            forecast=price_forecast,
-            harvest_days=harvest_days,
-            weather=weather,
-            location=location,
+            commodity,
+            market_data,
+            summary,
+            price_forecast,
+            harvest_days,
+            weather,
+            location,
         )
 
-        # 7) Build final response
-        response = {
-            "timestamp": datetime.datetime.now().strftime("%d %b %Y, %I:%M %p"),
-            "commodity": commodity.capitalize(),
-            "location": location,
-            "summary": summary_stats,
-            "market_data": market_data,
-            "price_forecast": price_forecast,
-            "recommendation": ai_structured.get("recommendation", {}),
-            "yield_outlook": ai_structured.get("yield_outlook", {}),
-            "price_forecast_comment": ai_structured.get("price_forecast_comment", ""),
-            "market_sentiment": ai_structured.get("market_sentiment", {}),
-            "optimal_market": ai_structured.get("optimal_market", {}),
-            "ai_summary": ai_structured.get(
-                "ai_summary", ai_structured.get("reason", "")
-            ),
-            "ai_reason": ai_structured.get("reason", ""),
-        }
-
-        return JSONResponse(content=response)
+        # 6️⃣ Final Response
+        return JSONResponse(
+            content={
+                "timestamp": datetime.datetime.now().strftime("%d %b %Y, %I:%M %p"),
+                "commodity": commodity.capitalize(),
+                "location": location,
+                "summary": summary,
+                "market_data": market_data,
+                "price_forecast": price_forecast,
+                "recommendation": ai_structured.get("recommendation", {}),
+                "yield_outlook": ai_structured.get("yield_outlook", {}),
+                "price_forecast_comment": ai_structured.get(
+                    "price_forecast_comment", ""
+                ),
+                "market_sentiment": ai_structured.get("market_sentiment", {}),
+                "optimal_market": ai_structured.get("optimal_market", {}),
+                "ai_summary": ai_structured.get("ai_summary", ""),
+                "ai_reason": ai_structured.get("reason", ""),
+            }
+        )
 
     except Exception as e:
         print("❌ Terminal Error:", e)
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# -------------------------
-# Fetch mandi records
-# -------------------------
+# ============================================================
+# 🏪 FETCH & NORMALIZE MANDI DATA
+# ============================================================
 def fetch_mandi_records(commodity: str, limit: int = 200):
     try:
-        base_url = (
-            "https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070"
-        )
+        url = "https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070"
         params = {
             "api-key": DATA_GOV_API_KEY,
             "format": "json",
             "limit": limit,
             "filters[commodity]": commodity.capitalize(),
         }
-        r = requests.get(base_url, params=params, timeout=12)
-        r.raise_for_status()
-        out = r.json()
-        records = out.get("records", [])
-        if not records:
-            raise Exception("No mandi data found for commodity")
-        return records
+        r = requests.get(url, params=params, timeout=12)
+        data = r.json().get("records", [])
+        if not data:
+            raise Exception("No mandi data found.")
+        return data
     except Exception as e:
-        print("⚠️ Mandi Fallback:", e)
-        # fallback demo records (schema matched)
+        print("⚠️ Using fallback mandi data:", e)
         today = datetime.datetime.now().strftime("%Y-%m-%d")
         return [
             {
@@ -159,41 +153,20 @@ def fetch_mandi_records(commodity: str, limit: int = 200):
                 "modal_price": "2380",
                 "price_unit": "Rs/Quintal",
             },
-            {
-                "state": "Rajasthan",
-                "district": "Jaipur",
-                "market": "Jaipur",
-                "commodity": commodity.capitalize(),
-                "variety": "Common",
-                "arrival_date": today,
-                "min_price": "2100",
-                "max_price": "2350",
-                "modal_price": "2220",
-                "price_unit": "Rs/Quintal",
-            },
         ]
 
 
-# -------------------------
-# Normalize mandi records
-# -------------------------
 def normalize_mandi_records(records, commodity_name):
     normalized = []
     for r in records:
         try:
-            modal = r.get("modal_price")
-            modal_val = None
-            if modal is not None:
-                try:
-                    modal_val = float(modal)
-                except Exception:
-                    modal_val = None
+            modal_val = float(r["modal_price"])
             normalized.append(
                 {
                     "state": r.get("state", ""),
                     "district": r.get("district", ""),
                     "market": r.get("market", ""),
-                    "commodity": r.get("commodity", commodity_name.capitalize()),
+                    "commodity": commodity_name.capitalize(),
                     "variety": r.get("variety", ""),
                     "arrival_date": r.get("arrival_date", ""),
                     "min_price": float_or_none(r.get("min_price")),
@@ -214,107 +187,44 @@ def float_or_none(x):
         return None
 
 
-# -------------------------
-# Weather fetcher (WeatherAPI)
-# -------------------------
+# ============================================================
+# 🌦 WEATHER FETCHER
+# ============================================================
 def fetch_weather_for_location(location):
     try:
-        url = f"http://api.weatherapi.com/v1/forecast.json?key={WEATHER_API_KEY}&q={location}&days=7&aqi=no&alerts=no"
-        r = requests.get(url, timeout=10)
-        r.raise_for_status()
-        data = r.json()
-        current = data.get("current", {})
-        forecast_days = data.get("forecast", {}).get("forecastday", [])
-        simplified_forecast = [
-            {
-                "date": d.get("date"),
-                "avgtemp_c": d["day"].get("avgtemp_c"),
-                "totalprecip_mm": d["day"].get("totalprecip_mm"),
-                "avghumidity": d["day"].get("avghumidity"),
-                "condition": d["day"]["condition"].get("text"),
-            }
-            for d in forecast_days
-        ]
+        url = f"http://api.weatherapi.com/v1/forecast.json?key={WEATHER_API_KEY}&q={location}&days=7"
+        data = requests.get(url, timeout=10).json()
         return {
             "location": data.get("location", {}).get("name", location),
             "country": data.get("location", {}).get("country", "India"),
-            "current": {
-                "temp_c": current.get("temp_c"),
-                "humidity": current.get("humidity"),
-                "precip_mm": current.get("precip_mm"),
-                "condition": current.get("condition", {}).get("text"),
-            },
-            "forecast": simplified_forecast,
+            "current": data.get("current", {}),
         }
     except Exception as e:
-        print("⚠️ WeatherAPI fallback:", e)
-        return {
-            "location": location,
-            "country": "India",
-            "current": {
-                "temp_c": None,
-                "humidity": None,
-                "precip_mm": None,
-                "condition": None,
-            },
-            "forecast": [],
-        }
+        print("⚠️ Weather Fallback:", e)
+        return {"location": location, "country": "India", "current": {}}
 
 
-# -------------------------
-# Price forecast (7 days)
-# -------------------------
+# ============================================================
+# 📈 PRICE FORECAST
+# ============================================================
 def generate_price_forecast(market_data, days=7):
     today = datetime.datetime.utcnow().date()
-    prices = [m["modal_price"] for m in market_data if m.get("modal_price") is not None]
+    prices = [m["modal_price"] for m in market_data if m.get("modal_price")]
     baseline = statistics.median(prices) if prices else 0
-    # trend: attempt from earliest to latest arrival_date
-    dates = [
-        (parse_iso_date_safe(m.get("arrival_date")), m.get("modal_price"))
-        for m in market_data
-        if parse_iso_date_safe(m.get("arrival_date"))
-        and m.get("modal_price") is not None
-    ]
-    trend_per_day = 0.0
-    if len(dates) >= 2:
-        dates_sorted = sorted(dates, key=lambda x: x[0])
-        first_date, first_price = dates_sorted[0]
-        last_date, last_price = dates_sorted[-1]
-        span = max((last_date - first_date).days, 1)
-        trend_per_day = (last_price - first_price) / span
-    else:
-        if prices and len(prices) >= 2:
-            trend_per_day = (max(prices) - min(prices)) / (7 * 10)
-        else:
-            trend_per_day = 0.0
     forecast = []
     for i in range(1, days + 1):
-        f_date = today + datetime.timedelta(days=i)
-        f_price = round(baseline + trend_per_day * i, 2)
         forecast.append(
-            {"date": f_date.strftime("%Y-%m-%d"), "forecast_price": f_price}
+            {
+                "date": (today + datetime.timedelta(days=i)).strftime("%Y-%m-%d"),
+                "forecast_price": round(baseline + random.uniform(-50, 50), 2),
+            }
         )
     return forecast
 
 
-def parse_iso_date_safe(s):
-    if not s or not isinstance(s, str):
-        return None
-    for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y", "%Y/%m/%d"):
-        try:
-            return datetime.datetime.strptime(s, fmt).date()
-        except Exception:
-            continue
-    try:
-        parts = s.split("T")[0]
-        return datetime.datetime.strptime(parts, "%Y-%m-%d").date()
-    except Exception:
-        return None
-
-
-# -------------------------
-# Gemini structured insight
-# -------------------------
+# ============================================================
+# 🤖 GEMINI STRUCTURED AI INSIGHT
+# ============================================================
 def generate_structured_ai_insight(
     commodity, market_data, summary, forecast, harvest_days, weather, location
 ):
@@ -329,63 +239,65 @@ def generate_structured_ai_insight(
       - reason: longer explanation
     """
     try:
-        # prepare sample market rows
         small_market = [
             {
                 "market": m.get("market"),
                 "state": m.get("state"),
                 "modal_price": m.get("modal_price"),
             }
-            for m in market_data[:30]
+            for m in market_data[:25]
         ]
 
         prompt = f"""
-You are AgriPulse Market Intelligence. Return ONLY a valid JSON object (no explanation).
+You are AgriPulse Market Intelligence. Return ONLY a valid JSON object (no explanations).
 
 Context:
 - Commodity: {commodity.capitalize()}
-- Location for weather context: {location}
+- Location: {location}
 - Harvest readiness: in {harvest_days} days
 - Summary stats: {summary}
 - Price forecast (next days): {forecast}
-- Weather (current + short forecast): {weather}
-- Sample market rows: {small_market}
+- Weather summary: {weather}
+- Sample markets: {small_market}
 
 Tasks:
-1) Recommendation: choose one action from BUY / HOLD / SELL for the next 2 weeks. Return confidence (0-100) and a 1-2 sentence reason.
-2) Nationwide yield outlook: estimate percent change vs last season (approx), and list 2-4 key factors influencing yield (weather, pests, input cost).
-3) Price forecast comment: 1 sentence about near-term price drivers.
-4) Market sentiment: overall (positive/neutral/negative) and two keywords.
-5) Optimal markets: list top 5 sell_high (market,state,price) and top 5 buy_low (market,state,price).
-6) Short ai_summary and a short "reason" field.
+1️⃣ Recommendation: choose one action from BUY / HOLD / SELL for next 2 weeks. Return confidence (0–100) and reason.
+2️⃣ Yield Outlook: percent change vs last season (approx) and 2–4 influencing factors.
+3️⃣ Price Forecast Comment: 1 sentence on near-term drivers.
+4️⃣ Market Sentiment: overall (positive/neutral/negative) and 2 keywords.
+5️⃣ Optimal Markets: top 5 sell_high (market,state,price) and top 5 buy_low.
+6️⃣ ai_summary (short) and reason (1–3 sentence reasoning).
 
-Return JSON structure exactly like:
+Return JSON like:
 {{
-  "recommendation": {{"action":"HOLD","confidence":82,"reason":"..."}},
-  "yield_outlook": {{"change_percent":"+1.3%","factors":["...","..."]}},
+  "recommendation": {{"action":"SELL","confidence":81,"reason":"..."}},
+  "yield_outlook": {{"change_percent":"+2.4%","factors":["...","..."]}},
   "price_forecast_comment":"...",
-  "market_sentiment":{{"overall":"positive","keywords":["k1","k2"]}},
-  "optimal_market":{{"sell_high":[{{"market":"X","state":"Y","price":123}}],"buy_low":[...] }},
+  "market_sentiment":{{"overall":"positive","keywords":["export","demand"]}},
+  "optimal_market":{{"sell_high":[{{"market":"X","state":"Y","price":123}}],"buy_low":[...]}},
   "ai_summary":"short line",
-  "reason":"detailed reasoning (1-3 sentences)"
+  "reason":"detailed reasoning (2 sentences)"
 }}
 """
+
         ai_resp = client.models.generate_content(
             model="gemini-2.5-flash",
             contents=prompt,
         )
         text = ai_resp.text.strip()
+
+        # Try parsing Gemini's JSON
         try:
             parsed = json.loads(text)
-            # validate keys
-            if not isinstance(parsed, dict) or "recommendation" not in parsed:
-                raise ValueError("Missing keys")
-            return parsed
+            if isinstance(parsed, dict) and "recommendation" in parsed:
+                return parsed
+            raise ValueError("Invalid JSON structure from Gemini")
         except Exception as parse_err:
             print("⚠️ Gemini parse failed:", parse_err)
             return fallback_structured_insight(
                 commodity, market_data, summary, forecast, harvest_days, weather
             )
+
     except Exception as e:
         print("⚠️ Gemini call failed:", e)
         return fallback_structured_insight(
@@ -393,10 +305,13 @@ Return JSON structure exactly like:
         )
 
 
+# ------------------------------------------------------------
+# 🧩 Fallback Insight (used if Gemini fails or API unavailable)
+# ------------------------------------------------------------
 def fallback_structured_insight(
     commodity, market_data, summary, forecast, harvest_days, weather
 ):
-    # compute sells/buys
+    # Compute top sell and buy markets
     sells = sorted(
         [m for m in market_data if m.get("modal_price") is not None],
         key=lambda x: -x["modal_price"],
@@ -405,6 +320,7 @@ def fallback_structured_insight(
         [m for m in market_data if m.get("modal_price") is not None],
         key=lambda x: x["modal_price"],
     )[:5]
+
     sell_high = [
         {"market": m["market"], "state": m["state"], "price": m["modal_price"]}
         for m in sells
@@ -414,50 +330,173 @@ def fallback_structured_insight(
         for m in buys
     ]
 
-    # naive yield outlook heuristics using weather
-    change_percent = "+0.0%"
+    # Simple yield heuristic
     factors = []
-    # if weather has recent precip, mention moisture
-    try:
-        if weather.get("current", {}).get("precip_mm"):
-            factors.append("recent rainfall")
-        if (
-            weather.get("current", {}).get("temp_c")
-            and weather["current"]["temp_c"] > 34
-        ):
-            factors.append("high temperatures")
-    except Exception:
-        pass
+    if weather.get("current", {}).get("precip_mm", 0) > 0:
+        factors.append("recent rainfall")
+    if weather.get("current", {}).get("temp_c", 0) > 34:
+        factors.append("high temperatures")
     if not factors:
-        factors = ["stable weather", "no major risks detected"]
+        factors = ["stable weather", "no major issues"]
 
-    # naive recommendation heuristic
+    # Basic trend heuristic
     baseline = summary.get("average_price", 0)
     next_price = forecast[0]["forecast_price"] if forecast else baseline
-    action = "HOLD"
-    confidence = 72
-    reason = "Market stable — hold and monitor short-term demand."
     if next_price > baseline * 1.02:
-        action = "SELL"
-        confidence = 80
-        reason = "Prices trending up — consider selling to lock gains."
+        action, conf, reason = (
+            "SELL",
+            80,
+            "Prices are trending upward — ideal for selling.",
+        )
     elif next_price < baseline * 0.98:
-        action = "BUY"
-        confidence = 75
-        reason = "Prices slightly weaker — procurement opportunity."
-
-    sentiment = {"overall": "neutral", "keywords": ["market_stable"]}
+        action, conf, reason = "BUY", 75, "Prices slightly down — opportunity to buy."
+    else:
+        action, conf, reason = "HOLD", 70, "Market stable — hold for short term."
 
     return {
-        "recommendation": {
-            "action": action,
-            "confidence": confidence,
-            "reason": reason,
-        },
-        "yield_outlook": {"change_percent": change_percent, "factors": factors},
-        "price_forecast_comment": "Short-term moderate movement expected.",
-        "market_sentiment": sentiment,
+        "recommendation": {"action": action, "confidence": conf, "reason": reason},
+        "yield_outlook": {"change_percent": "+0.3%", "factors": factors},
+        "price_forecast_comment": "Minor short-term variations expected.",
+        "market_sentiment": {"overall": "neutral", "keywords": ["steady", "moderate"]},
         "optimal_market": {"sell_high": sell_high, "buy_low": buy_low},
         "ai_summary": reason,
         "reason": reason,
     }
+
+
+# ============================================================
+# 🌍 TRADE SIMULATION ENGINE
+# ============================================================
+
+
+def load_international_prices():
+    if not DATA_PATH.exists():
+        raise FileNotFoundError("International dataset missing.")
+    return pd.read_csv(DATA_PATH)
+
+
+def get_distance_km(source, destination):
+    try:
+        url = (
+            f"https://api.distancematrix.ai/maps/api/distancematrix/json?"
+            f"origins={source}&destinations={destination}&key={DISTANCEMATRIX_API_KEY}"
+        )
+        res = requests.get(url, timeout=12)
+        element = res.json()["rows"][0]["elements"][0]
+        if element.get("status") != "OK":
+            return estimate_distance_fallback(source, destination)
+        dist = element["distance"]["text"]
+        return float(dist.replace(" km", "").replace(",", ""))
+    except Exception:
+        return estimate_distance_fallback(source, destination)
+
+
+def estimate_distance_fallback(source, destination):
+    src, dst = source.lower(), destination.lower()
+    routes = {
+        ("mumbai", "novorossiysk"): 4800,
+        ("mumbai", "dubai"): 1900,
+        ("mumbai", "singapore"): 3900,
+        ("kolkata", "dhaka"): 250,
+        ("chennai", "jakarta"): 3600,
+        ("mumbai", "new york"): 12500,
+        ("mumbai", "rotterdam"): 7100,
+        ("pune", "delhi"): 1450,
+        ("indore", "mumbai"): 585,
+        ("nagpur", "kolkata"): 970,
+    }
+    for (a, b), d in routes.items():
+        if a in src and b in dst:
+            return d
+    return 5000
+
+
+def compute_trade_profit(buy_price, sell_price, distance_km, qty_tonnes, domestic=True):
+    rate = random.randint(50, 100) if domestic else random.randint(120, 200)
+    logistics_cost = rate * distance_km
+    gross_profit = (sell_price - buy_price) * qty_tonnes
+    net_profit = gross_profit - logistics_cost
+    roi = (net_profit / (buy_price * qty_tonnes)) * 100 if buy_price > 0 else 0
+    return logistics_cost, net_profit, roi
+
+
+@router.get("/simulate-trade")
+def simulate_trade(
+    commodity: str = Query(...),
+    source: str = Query(...),
+    destination: str = Query(...),
+    qty_tonnes: float = Query(20.0),
+    domestic: bool = Query(False),
+):
+    try:
+        if domestic:
+            # Domestic using Mandi API
+            df = pd.DataFrame(
+                normalize_mandi_records(fetch_mandi_records(commodity), commodity)
+            )
+            src = df[df["market"].str.contains(source, case=False, na=False)]
+            dst = df[df["market"].str.contains(destination, case=False, na=False)]
+            if src.empty or dst.empty:
+                raise HTTPException(
+                    status_code=404, detail="Source/destination not found in mandi data"
+                )
+            buy_price = float(src.iloc[0]["modal_price"]) * 10
+            sell_price = float(dst.iloc[0]["modal_price"]) * 10
+        else:
+            # International using CSV
+            df = load_international_prices()
+            df_commodity = df[df["Commodity"].str.lower() == commodity.lower()]
+            src = df_commodity[
+                df_commodity["Region"].str.contains(source, case=False, na=False)
+            ]
+            dst = df_commodity[
+                df_commodity["Region"].str.contains(destination, case=False, na=False)
+            ]
+            if src.empty or dst.empty:
+                raise HTTPException(
+                    status_code=404, detail="Source/destination not found in dataset"
+                )
+            buy_price = float(src.iloc[0]["Price_INR_per_Tonne"])
+            sell_price = float(dst.iloc[0]["Price_INR_per_Tonne"])
+
+        distance_km = get_distance_km(source, destination)
+        logistics_cost, net_profit, roi = compute_trade_profit(
+            buy_price, sell_price, distance_km, qty_tonnes, domestic
+        )
+
+        return JSONResponse(
+            content={
+                "mode": "Domestic" if domestic else "International",
+                "domestic": domestic,
+                "commodity": commodity.capitalize(),
+                "source": source,
+                "destination": destination,
+                "distance_km": round(distance_km, 2),
+                "buy_price_inr_per_tonne": round(buy_price, 2),
+                "sell_price_inr_per_tonne": round(sell_price, 2),
+                "qty_tonnes": qty_tonnes,
+                "logistics_cost_inr": round(logistics_cost, 2),
+                "net_profit_inr": round(net_profit, 2),
+                "roi_percent": round(roi, 2),
+                "profitable": net_profit > 0,
+            }
+        )
+
+    except Exception as e:
+        print("❌ Trade simulation error:", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/international-options")
+def get_international_options():
+    """
+    Returns a list of available commodities and ports from the international CSV dataset.
+    """
+    try:
+        df = load_international_prices()
+        commodities = sorted(df["Commodity"].unique().tolist())
+        ports = sorted(df["Region"].unique().tolist())
+        return JSONResponse(content={"commodities": commodities, "ports": ports})
+    except Exception as e:
+        print("⚠️ Failed to load options:", e)
+        raise HTTPException(status_code=500, detail=str(e))

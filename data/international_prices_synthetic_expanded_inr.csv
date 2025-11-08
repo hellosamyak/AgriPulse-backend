@@ -1,0 +1,121 @@
+commodity,country,port,country_code,price_usd_per_tonne,freight_usd_per_tonne,currency,unit,last_updated,price_inr_per_tonne,freight_inr_per_tonne
+Wheat,India,Mumbai Port,IN,213.65,75.44,USD,tonne,2025-11-03,17775.68,6276.61
+Wheat,India,Chennai Port,IN,242.66,49.54,USD,tonne,2025-11-08,20189.31,4121.73
+Wheat,USA,New Orleans,US,232.07,55.57,USD,tonne,2025-11-03,19308.22,4623.42
+Wheat,USA,Houston,US,218.73,67.2,USD,tonne,2025-11-07,18198.34,5591.04
+Wheat,Brazil,Santos Port,BR,226.88,64.78,USD,tonne,2025-11-07,18876.42,5389.7
+Wheat,Brazil,Paranaguá Port,BR,235.63,35.73,USD,tonne,2025-11-07,19604.42,2972.74
+Wheat,Russia,Novorossiysk,RU,220.85,58.66,USD,tonne,2025-11-03,18374.72,4880.51
+Wheat,Russia,Vladivostok,RU,229.02,75.3,USD,tonne,2025-11-01,19054.46,6264.96
+Wheat,Australia,Fremantle Port,AU,230.76,52.8,USD,tonne,2025-11-07,19199.23,4392.96
+Wheat,Australia,Sydney Port,AU,231.19,50.29,USD,tonne,2025-11-04,19235.01,4184.13
+Wheat,China,Shanghai Port,CN,246.92,78.18,USD,tonne,2025-11-07,20543.74,6504.58
+Wheat,China,Tianjin Port,CN,236.89,56.21,USD,tonne,2025-11-07,19709.25,4676.67
+Wheat,UAE,Jebel Ali,AE,198.7,67.62,USD,tonne,2025-11-08,16531.84,5625.98
+Wheat,UAE,Fujairah Port,AE,244.23,19.06,USD,tonne,2025-11-02,20319.94,1585.79
+Wheat,South Africa,Durban Port,ZA,210.44,46.37,USD,tonne,2025-11-02,17508.61,3857.98
+Wheat,Egypt,Alexandria Port,EG,232.92,30.37,USD,tonne,2025-11-06,19378.94,2526.78
+Wheat,Argentina,Buenos Aires,AR,240.4,34.69,USD,tonne,2025-11-07,20001.28,2886.21
+Wheat,Indonesia,Jakarta Port,ID,220.87,37.15,USD,tonne,2025-11-04,18376.38,3090.88
+Wheat,Vietnam,Ho Chi Minh City,VN,239.62,66.13,USD,tonne,2025-11-08,19936.38,5502.02
+Wheat,France,Le Havre,FR,251.0,21.04,USD,tonne,2025-11-06,20883.2,1750.53
+Wheat,Germany,Hamburg,DE,214.36,46.49,USD,tonne,2025-11-04,17834.75,3867.97
+Wheat,Bangladesh,Chittagong Port,BD,245.18,73.9,USD,tonne,2025-11-07,20398.98,6148.48
+Wheat,Japan,Yokohama,JP,255.38,66.58,USD,tonne,2025-11-08,21247.62,5539.46
+Wheat,Singapore,Singapore Port,SG,219.41,75.45,USD,tonne,2025-11-06,18254.91,6277.44
+Maize,India,Mumbai Port,IN,173.7,19.09,USD,tonne,2025-11-04,14451.84,1588.29
+Maize,India,Chennai Port,IN,192.8,74.08,USD,tonne,2025-11-03,16040.96,6163.46
+Maize,USA,New Orleans,US,199.92,67.21,USD,tonne,2025-11-03,16633.34,5591.87
+Maize,USA,Houston,US,204.25,41.69,USD,tonne,2025-11-02,16993.6,3468.61
+Maize,Brazil,Santos Port,BR,214.96,43.73,USD,tonne,2025-11-07,17884.67,3638.34
+Maize,Brazil,Paranaguá Port,BR,202.86,68.65,USD,tonne,2025-11-06,16877.95,5711.68
+Maize,Russia,Novorossiysk,RU,202.96,10.63,USD,tonne,2025-11-03,16886.27,884.42
+Maize,Russia,Vladivostok,RU,189.27,54.66,USD,tonne,2025-11-02,15747.26,4547.71
+Maize,Australia,Fremantle Port,AU,184.76,47.76,USD,tonne,2025-11-02,15372.03,3973.63
+Maize,Australia,Sydney Port,AU,205.81,68.49,USD,tonne,2025-11-05,17123.39,5698.37
+Maize,China,Shanghai Port,CN,177.64,60.52,USD,tonne,2025-11-03,14779.65,5035.26
+Maize,China,Tianjin Port,CN,235.02,52.86,USD,tonne,2025-11-07,19553.66,4397.95
+Maize,UAE,Jebel Ali,AE,222.66,53.24,USD,tonne,2025-11-08,18525.31,4429.57
+Maize,UAE,Fujairah Port,AE,184.08,12.53,USD,tonne,2025-11-01,15315.46,1042.5
+Maize,South Africa,Durban Port,ZA,214.17,67.18,USD,tonne,2025-11-08,17818.94,5589.38
+Maize,Egypt,Alexandria Port,EG,187.15,72.79,USD,tonne,2025-11-07,15570.88,6056.13
+Maize,Argentina,Buenos Aires,AR,175.57,28.82,USD,tonne,2025-11-05,14607.42,2397.82
+Maize,Indonesia,Jakarta Port,ID,192.04,73.27,USD,tonne,2025-11-06,15977.73,6096.06
+Maize,Vietnam,Ho Chi Minh City,VN,180.26,18.51,USD,tonne,2025-11-02,14997.63,1540.03
+Maize,France,Le Havre,FR,191.22,48.6,USD,tonne,2025-11-06,15909.5,4043.52
+Maize,Germany,Hamburg,DE,198.24,16.41,USD,tonne,2025-11-04,16493.57,1365.31
+Maize,Bangladesh,Chittagong Port,BD,210.5,30.14,USD,tonne,2025-11-07,17513.6,2507.65
+Maize,Japan,Yokohama,JP,218.51,45.94,USD,tonne,2025-11-03,18180.03,3822.21
+Maize,Singapore,Singapore Port,SG,201.81,34.25,USD,tonne,2025-11-07,16790.59,2849.6
+Soybean,India,Mumbai Port,IN,580.16,51.91,USD,tonne,2025-11-01,48269.31,4318.91
+Soybean,India,Chennai Port,IN,567.28,79.29,USD,tonne,2025-11-01,47197.7,6596.93
+Soybean,USA,New Orleans,US,611.2,19.8,USD,tonne,2025-11-01,50851.84,1647.36
+Soybean,USA,Houston,US,552.49,16.51,USD,tonne,2025-11-03,45967.17,1373.63
+Soybean,Brazil,Santos Port,BR,494.64,64.22,USD,tonne,2025-11-02,41154.05,5343.1
+Soybean,Brazil,Paranaguá Port,BR,522.78,22.06,USD,tonne,2025-11-02,43495.3,1835.39
+Soybean,Russia,Novorossiysk,RU,518.52,15.59,USD,tonne,2025-11-03,43140.86,1297.09
+Soybean,Russia,Vladivostok,RU,484.5,20.85,USD,tonne,2025-11-08,40310.4,1734.72
+Soybean,Australia,Fremantle Port,AU,502.25,59.18,USD,tonne,2025-11-03,41787.2,4923.78
+Soybean,Australia,Sydney Port,AU,468.5,58.8,USD,tonne,2025-11-05,38979.2,4892.16
+Soybean,China,Shanghai Port,CN,552.79,69.7,USD,tonne,2025-11-04,45992.13,5799.04
+Soybean,China,Tianjin Port,CN,573.07,44.9,USD,tonne,2025-11-04,47679.42,3735.68
+Soybean,UAE,Jebel Ali,AE,565.64,33.18,USD,tonne,2025-11-06,47061.25,2760.58
+Soybean,UAE,Fujairah Port,AE,618.83,69.77,USD,tonne,2025-11-03,51486.66,5804.86
+Soybean,South Africa,Durban Port,ZA,501.13,73.45,USD,tonne,2025-11-02,41694.02,6111.04
+Soybean,Egypt,Alexandria Port,EG,544.36,22.42,USD,tonne,2025-11-03,45290.75,1865.34
+Soybean,Argentina,Buenos Aires,AR,491.49,70.79,USD,tonne,2025-11-08,40891.97,5889.73
+Soybean,Indonesia,Jakarta Port,ID,480.95,67.1,USD,tonne,2025-11-03,40015.04,5582.72
+Soybean,Vietnam,Ho Chi Minh City,VN,438.5,73.34,USD,tonne,2025-11-01,36483.2,6101.89
+Soybean,France,Le Havre,FR,495.0,75.46,USD,tonne,2025-11-01,41184.0,6278.27
+Soybean,Germany,Hamburg,DE,473.12,29.85,USD,tonne,2025-11-04,39363.58,2483.52
+Soybean,Bangladesh,Chittagong Port,BD,551.38,57.48,USD,tonne,2025-11-03,45874.82,4782.34
+Soybean,Japan,Yokohama,JP,492.7,24.9,USD,tonne,2025-11-05,40992.64,2071.68
+Soybean,Singapore,Singapore Port,SG,496.5,62.83,USD,tonne,2025-11-01,41308.8,5227.46
+Rice,India,Mumbai Port,IN,364.89,66.36,USD,tonne,2025-11-01,30358.85,5521.15
+Rice,India,Chennai Port,IN,452.74,71.64,USD,tonne,2025-11-01,37667.97,5960.45
+Rice,USA,New Orleans,US,452.92,65.04,USD,tonne,2025-11-04,37682.94,5411.33
+Rice,USA,Houston,US,355.17,48.89,USD,tonne,2025-11-08,29550.14,4067.65
+Rice,Brazil,Santos Port,BR,416.05,46.16,USD,tonne,2025-11-02,34615.36,3840.51
+Rice,Brazil,Paranaguá Port,BR,448.44,69.13,USD,tonne,2025-11-06,37310.21,5751.62
+Rice,Russia,Novorossiysk,RU,343.74,20.49,USD,tonne,2025-11-04,28599.17,1704.77
+Rice,Russia,Vladivostok,RU,342.78,71.06,USD,tonne,2025-11-03,28519.3,5912.19
+Rice,Australia,Fremantle Port,AU,399.93,25.69,USD,tonne,2025-11-04,33274.18,2137.41
+Rice,Australia,Sydney Port,AU,424.62,72.13,USD,tonne,2025-11-02,35328.38,6001.22
+Rice,China,Shanghai Port,CN,380.43,39.46,USD,tonne,2025-11-04,31651.78,3283.07
+Rice,China,Tianjin Port,CN,422.7,63.3,USD,tonne,2025-11-08,35168.64,5266.56
+Rice,UAE,Jebel Ali,AE,412.6,53.41,USD,tonne,2025-11-04,34328.32,4443.71
+Rice,UAE,Fujairah Port,AE,354.12,16.05,USD,tonne,2025-11-06,29462.78,1335.36
+Rice,South Africa,Durban Port,ZA,395.75,70.25,USD,tonne,2025-11-07,32926.4,5844.8
+Rice,Egypt,Alexandria Port,EG,352.1,29.22,USD,tonne,2025-11-02,29294.72,2431.1
+Rice,Argentina,Buenos Aires,AR,445.67,32.43,USD,tonne,2025-11-04,37079.74,2698.18
+Rice,Indonesia,Jakarta Port,ID,456.29,52.19,USD,tonne,2025-11-07,37963.33,4342.21
+Rice,Vietnam,Ho Chi Minh City,VN,368.34,79.94,USD,tonne,2025-11-07,30645.89,6651.01
+Rice,France,Le Havre,FR,441.68,64.7,USD,tonne,2025-11-06,36747.78,5383.04
+Rice,Germany,Hamburg,DE,461.36,23.13,USD,tonne,2025-11-04,38385.15,1924.42
+Rice,Bangladesh,Chittagong Port,BD,347.35,62.25,USD,tonne,2025-11-06,28899.52,5179.2
+Rice,Japan,Yokohama,JP,366.06,65.71,USD,tonne,2025-11-08,30456.19,5467.07
+Rice,Singapore,Singapore Port,SG,385.33,65.56,USD,tonne,2025-11-01,32059.46,5454.59
+Cotton,India,Mumbai Port,IN,1990.77,11.35,USD,tonne,2025-11-07,165632.06,944.32
+Cotton,India,Chennai Port,IN,1953.66,62.19,USD,tonne,2025-11-02,162544.51,5174.21
+Cotton,USA,New Orleans,US,1756.27,51.37,USD,tonne,2025-11-05,146121.66,4273.98
+Cotton,USA,Houston,US,1531.67,58.21,USD,tonne,2025-11-06,127434.94,4843.07
+Cotton,Brazil,Santos Port,BR,1774.76,25.23,USD,tonne,2025-11-04,147660.03,2099.14
+Cotton,Brazil,Paranaguá Port,BR,1815.35,74.72,USD,tonne,2025-11-05,151037.12,6216.7
+Cotton,Russia,Novorossiysk,RU,1670.22,66.21,USD,tonne,2025-11-08,138962.3,5508.67
+Cotton,Russia,Vladivostok,RU,1756.6,39.3,USD,tonne,2025-11-04,146149.12,3269.76
+Cotton,Australia,Fremantle Port,AU,1752.81,69.44,USD,tonne,2025-11-07,145833.79,5777.41
+Cotton,Australia,Sydney Port,AU,1510.0,77.54,USD,tonne,2025-11-08,125632.0,6451.33
+Cotton,China,Shanghai Port,CN,1761.64,47.03,USD,tonne,2025-11-04,146568.45,3912.9
+Cotton,China,Tianjin Port,CN,1501.11,73.1,USD,tonne,2025-11-08,124892.35,6081.92
+Cotton,UAE,Jebel Ali,AE,1847.25,49.11,USD,tonne,2025-11-05,153691.2,4085.95
+Cotton,UAE,Fujairah Port,AE,1554.35,30.24,USD,tonne,2025-11-08,129321.92,2515.97
+Cotton,South Africa,Durban Port,ZA,1895.93,40.81,USD,tonne,2025-11-03,157741.38,3395.39
+Cotton,Egypt,Alexandria Port,EG,1795.15,27.84,USD,tonne,2025-11-05,149356.48,2316.29
+Cotton,Argentina,Buenos Aires,AR,1972.33,68.98,USD,tonne,2025-11-04,164097.86,5739.14
+Cotton,Indonesia,Jakarta Port,ID,1611.25,27.63,USD,tonne,2025-11-08,134056.0,2298.82
+Cotton,Vietnam,Ho Chi Minh City,VN,1869.74,40.84,USD,tonne,2025-11-08,155562.37,3397.89
+Cotton,France,Le Havre,FR,1736.42,76.5,USD,tonne,2025-11-02,144470.14,6364.8
+Cotton,Germany,Hamburg,DE,2041.17,21.95,USD,tonne,2025-11-07,169825.34,1826.24
+Cotton,Bangladesh,Chittagong Port,BD,1774.82,57.74,USD,tonne,2025-11-04,147665.02,4803.97
+Cotton,Japan,Yokohama,JP,1625.84,74.53,USD,tonne,2025-11-02,135269.89,6200.9
+Cotton,Singapore,Singapore Port,SG,1578.66,72.39,USD,tonne,2025-11-06,131344.51,6022.85
