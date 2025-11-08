@@ -210,29 +210,83 @@ def generate_multi_crop_insights(location, weather, market):
     """
     try:
         prompt = f"""
-        You are AgriPulse AI — analyze live data below for {location}:
+        You are *AgriPulse AI* — a next-generation agricultural intelligence system built for precision crop decisioning.
+
+Constant input (do not modify these lines; they are injected dynamically):
         Weather: {weather}
         Mandi Prices: {market[:5]}
 
-        Based on:
-        - Temperature, rainfall, and humidity
-        - Market prices and demand
+Analyze the live data for {location} and output the TOP 3 crops to *plant or sell* this week.
 
-        Suggest the TOP 3 crops to plant or sell this week.
-        Respond in JSON format like this:
-        [
-            {{"crop": "Soybean", "confidence": 92, "reason": "High demand and suitable humidity"}},
-            {{"crop": "Wheat", "confidence": 85, "reason": "Rising MSP and stable weather"}},
-            {{"crop": "Maize", "confidence": 80, "reason": "Low rainfall and steady prices"}}
-        ]
+Your analysis must be based on:
+- Temperature, rainfall, humidity, and soil conditions of the region  
+- Market prices, price momentum, and short-term demand trends  
+- Crop seasonality and soil compatibility  
+- National and global demand growth of each crop  
+- El Niño / La Niña impact on local yield and climate patterns  
+- Global economic indicators (IMF, World Bank commodity outlooks)  
+- Country-level import/export duties and trade restrictions  
+- Feasibility of exporting crops for maximum margins  
+- Government policies, MSP updates, or procurement drives  
+- Storage, logistics, and supply chain factors that affect price realization  
+- Energy/fertilizer costs and other input-side economics  
+- Regional risk alerts (pests, diseases, weather extremes)  
+- Strategic reserves and inventory cycles that could influence demand  
+
+*Instructions:*
+- Output must be strictly valid JSON — no text outside JSON.
+- Rank top 3 crops by confidence (0–100).
+- For each crop, include detailed reasoning as bullet points showing logic and data links.
+- Keep reasoning short, factual, and high signal (3–6 bullets per crop).
+- Output only the following JSON structure exactly:
+
+[
+  {
+    "crop": "Soybean",
+    "recommendation_type": "plant" | "sell",
+    "confidence": 92,
+    "reason": [
+      "- Bullet 1: specific reason",
+      "- Bullet 2: specific reason",
+      "- Bullet 3: specific reason",
+      "... up to 6"
+    ]
+  },
+  {
+    "crop": "Wheat",
+    "recommendation_type": "sell",
+    "confidence": 85,
+    "reason": [
+      "- Bullet 1: specific reason",
+      "- Bullet 2: specific reason",
+      "- Bullet 3: specific reason"
+    ]
+  },
+  {
+    "crop": "Maize",
+    "recommendation_type": "plant",
+    "confidence": 80,
+    "reason": [
+      "- Bullet 1: specific reason",
+      "- Bullet 2: specific reason",
+      "- Bullet 3: specific reason"
+    ]
+  }
+]
+
+*Additional Notes for Model:*
+- Always cite weather or market data points numerically when possible (e.g., “Rainfall <10mm next 7 days” or “Price up +6% WoW”).  
+- “Confidence” reflects holistic synthesis of agronomic fit, market outlook, and macro trade feasibility — not a statistical probability.  
+- If a crop is seasonally unsuited or high-risk, give confidence ≤40 with clear rationale.  
+- Prioritize data-driven and economically rational reasoning — avoid generic or repetitive phrasing.  
+- Keep response deterministic and concise enough for real-time dashboards.
         """
 
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model="gemini-2.5-flash",
             contents=prompt,
         )
 
-        # Try parsing Gemini JSON
         import json
 
         try:
@@ -240,7 +294,7 @@ def generate_multi_crop_insights(location, weather, market):
             crops = json.loads(text)
             return crops
         except Exception:
-            # fallback to manual parse
+            # Fallback to default crops if JSON parsing fails
             return [
                 {
                     "crop": "Soybean",

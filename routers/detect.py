@@ -50,9 +50,9 @@ async def detect_disease(file: UploadFile = File(...)):
         Keep the JSON clean and concise, no markdown or explanations.
         """
 
-        # Call Gemini 2.0 Flash Vision model
+        # Call Gemini 2.5 Flash Vision model
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model="gemini-2.5-flash",
             contents=[
                 {
                     "role": "user",
